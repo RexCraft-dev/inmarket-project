@@ -23,13 +23,19 @@ const categorySchema = z.enum(VALID_CATEGORIES, {
   errorMap: () => ({ message: `Invalid category. Valid values: ${VALID_CATEGORIES.join(', ')}` }),
 });
 
+const citySchema = z
+  .string()
+  .min(1, 'city parameter is required')
+  .max(100, 'city name too long')
+  .regex(/^[A-Za-z0-9\s,.\-']+$/, 'city name contains invalid characters');
+
 const scoreSchema = z.object({
-  city: z.string().min(1, 'city parameter is required'),
+  city: citySchema,
   category: categorySchema,
 });
 
 const forecastWindowSchema = z.object({
-  city: z.string().min(1, 'city parameter is required'),
+  city: citySchema,
   category: categorySchema,
   hours: z.coerce.number().int().min(1).max(48).default(6),
 });
@@ -45,7 +51,7 @@ const compareSchema = z.object({
 });
 
 const forecastSevenDaySchema = z.object({
-  city:     z.string().min(1, 'city parameter is required'),
+  city:     citySchema,
   category: categorySchema,
 });
 
@@ -54,7 +60,7 @@ const triggersSchema = z.object({
 });
 
 const conditionsSchema = z.object({
-  city: z.string().min(1, 'city parameter is required'),
+  city: citySchema,
 });
 
 // ─── Router ───────────────────────────────────────────────────────────────────

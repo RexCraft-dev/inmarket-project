@@ -1,13 +1,19 @@
 import 'dotenv/config';
 import express from 'express';
 import cors from 'cors';
+import rateLimit from 'express-rate-limit';
 import { ZodError } from 'zod';
 import momentsRouter from './routes/moments.js';
 import { OwmError } from './services/owmClient.js';
 
 const app = express();
+app.disable('x-powered-by');
 
-app.use(cors());
+const CORS_ORIGINS = process.env.CORS_ORIGIN
+  ? process.env.CORS_ORIGIN.split(',').map(o => o.trim())
+  : ['http://localhost:5000', 'http://localhost:3000'];
+app.use(cors({ origin: CORS_ORIGINS }));
+app.use(rateLimit({ windowMs: 60_000, max: 60, standardHeaders: true, legacyHeaders: false }));
 app.use(express.json());
 
 app.use('/moments', momentsRouter);

@@ -1,6 +1,7 @@
 import 'dotenv/config';
 import express from 'express';
 import cors from 'cors';
+import rateLimit from 'express-rate-limit';
 import { ZodError } from 'zod';
 import analyzeRouter from './routes/analyze.js';
 
@@ -9,9 +10,14 @@ if (!process.env.OPENAI_API_KEY) {
 }
 
 const app = express();
+app.disable('x-powered-by');
 
-app.use(cors());
-app.use(express.json());
+const CORS_ORIGINS = process.env.CORS_ORIGIN
+  ? process.env.CORS_ORIGIN.split(',').map(o => o.trim())
+  : ['http://localhost:5000'];
+app.use(cors({ origin: CORS_ORIGINS }));
+app.use(rateLimit({ windowMs: 60_000, max: 10, standardHeaders: true, legacyHeaders: false }));
+app.use(express.json({ limit: '10kb' }));
 
 app.use('/', analyzeRouter);
 

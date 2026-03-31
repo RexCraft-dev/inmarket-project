@@ -139,12 +139,12 @@ const prompt = ChatPromptTemplate.fromMessages([
 ]);
 
 const agent    = await createOpenAIToolsAgent({ llm, tools, prompt });
-const executor = new AgentExecutor({ agent, tools, maxIterations: 5 });
+const executor = new AgentExecutor({ agent, tools, maxIterations: 5, verbose: false });
 
 // ─── Router ───────────────────────────────────────────────────────────────────
 
 const analyzeSchema = z.object({
-  question: z.string().min(1, 'question is required'),
+  question: z.string().min(1, 'question is required').max(2000, 'question must be 2000 characters or fewer'),
   city:     z.string().optional(),
   category: z.string().optional(),
   cities:   z.array(z.string()).optional(),

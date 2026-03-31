@@ -847,6 +847,13 @@
   const condWind     = $('condWind');
   const condHour     = $('condHour');
 
+  /* ── HTML escaping ─────────────────────────────────────────── */
+  function escapeHtml(str) {
+    const d = document.createElement('div');
+    d.appendChild(document.createTextNode(String(str ?? '')));
+    return d.innerHTML;
+  }
+
   /* ── Constants ─────────────────────────────────────────────── */
   const AGENT_URL = 'http://localhost:3000';
   const MCP_URL   = 'http://localhost:3001';
@@ -912,8 +919,8 @@
 
         detailEl.innerHTML = rows.map(s => `
           <div class="detail-row ${s.active ? 'active' : 'inactive'}">
-            <span class="detail-label">${s.label}</span>
-            <span class="detail-weight">${s.weight > 0 ? '+' : ''}${s.weight}</span>
+            <span class="detail-label">${escapeHtml(s.label)}</span>
+            <span class="detail-weight">${s.weight > 0 ? '+' : ''}${escapeHtml(s.weight)}</span>
           </div>
         `).join('') || '<span style="color:var(--slate-500);font-size:11px">No triggers</span>';
       }
@@ -935,9 +942,9 @@
       return;
     }
     signalsRow.innerHTML = signals.map(s => `
-      <span class="signal-pill ${s.active ? 'active' : 'inactive'}" title="${s.component}">
-        ${s.label ?? s.key}
-        <span class="signal-weight">${s.weight > 0 ? '+' : ''}${s.weight}</span>
+      <span class="signal-pill ${s.active ? 'active' : 'inactive'}" title="${escapeHtml(s.component)}">
+        ${escapeHtml(s.label ?? s.key)}
+        <span class="signal-weight">${s.weight > 0 ? '+' : ''}${escapeHtml(s.weight)}</span>
       </span>
     `).join('');
   }
@@ -1036,16 +1043,16 @@
       return `
         <div class="day-card" id="${cardId}">
           <div class="day-card-head">
-            <span class="day-name">${dayName}</span>
-            <span class="day-date">${dateLabel}</span>
+            <span class="day-name">${escapeHtml(dayName)}</span>
+            <span class="day-date">${escapeHtml(dateLabel)}</span>
           </div>
-          <div class="day-score ${scoreClass}">${day.peak_score}</div>
+          <div class="day-score ${scoreClass}">${escapeHtml(day.peak_score)}</div>
           <div class="day-bar-track">
             <div class="day-bar-fill" style="width:${day.peak_score}%;background:${barColor}"></div>
           </div>
           <canvas class="day-sparkline" id="${canvasId}" width="94" height="22"></canvas>
-          <div class="day-meta">Peak ${h12}${ampm}</div>
-          <div class="day-signal">${day.top_signals?.[0]?.label ?? '—'}</div>
+          <div class="day-meta">Peak ${escapeHtml(h12)}${escapeHtml(ampm)}</div>
+          <div class="day-signal">${escapeHtml(day.top_signals?.[0]?.label ?? '—')}</div>
         </div>
       `;
     }).join('');

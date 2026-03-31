@@ -1,0 +1,211 @@
+{
+  "_comment": "Moment scoring weights per brand category. Range: -20 (strong negative signal) to +20 (strong positive signal). Zero means neutral/no meaningful effect.",
+  "categories": {
+    "quick-service-restaurant": {
+      "_rationale": "Driven by commute patterns and meal-occasion timing. Bad weather pushes toward fast/convenient food rather than cooking. Morning and lunch are peak QSR dayparts by revenue.",
+      "weather": {
+        "rain": 8,
+        "snow": 6,
+        "heat": 5,
+        "cold": 9,
+        "wind": 4,
+        "clear-sky": -3
+      },
+      "time-of-day": {
+        "morning": 12,
+        "lunch": 18,
+        "afternoon": 5,
+        "evening": 10,
+        "late-night": 4
+      },
+      "day-of-week": {
+        "weekday": 9,
+        "weekend": 5
+      }
+    },
+
+    "coffee": {
+      "_rationale": "Morning routine is the dominant signal — strongest category-time alignment in the set. Cold and rainy conditions are classic behavioral triggers for hot beverage purchase. Weekday commuter habits are a major driver.",
+      "weather": {
+        "rain": 14,
+        "snow": 11,
+        "heat": -6,
+        "cold": 16,
+        "wind": 9,
+        "clear-sky": 2
+      },
+      "time-of-day": {
+        "morning": 20,
+        "lunch": 6,
+        "afternoon": 9,
+        "evening": -4,
+        "late-night": -12
+      },
+      "day-of-week": {
+        "weekday": 11,
+        "weekend": 4
+      }
+    },
+
+    "delivery-food": {
+      "_rationale": "Bad weather is the single strongest demand driver — people substitute delivery for going out. Evening is peak order time. Weekends add a leisure/laziness multiplier. Clear skies suppress demand as people venture out.",
+      "weather": {
+        "rain": 17,
+        "snow": 20,
+        "heat": 11,
+        "cold": 13,
+        "wind": 8,
+        "clear-sky": -9
+      },
+      "time-of-day": {
+        "morning": -5,
+        "lunch": 12,
+        "afternoon": 4,
+        "evening": 18,
+        "late-night": 9
+      },
+      "day-of-week": {
+        "weekday": 4,
+        "weekend": 13
+      }
+    },
+
+    "grocery": {
+      "_rationale": "Weekend shopping trips are the dominant behavioral pattern. Nice weather encourages running errands. Severe weather suppresses trips (except panic-buying, which is pre-event). After-work afternoon/evening slots are the weekday peak.",
+      "weather": {
+        "rain": -7,
+        "snow": -14,
+        "heat": -4,
+        "cold": -3,
+        "wind": -5,
+        "clear-sky": 9
+      },
+      "time-of-day": {
+        "morning": 5,
+        "lunch": 4,
+        "afternoon": 12,
+        "evening": 9,
+        "late-night": -12
+      },
+      "day-of-week": {
+        "weekday": 4,
+        "weekend": 14
+      }
+    },
+
+    "auto-insurance": {
+      "_rationale": "Risk salience drives consideration — rain and snow make hazardous driving conditions top of mind. Commute hours activate car-related thinking. Weekdays dominate because that is when driving exposure is highest.",
+      "weather": {
+        "rain": 11,
+        "snow": 14,
+        "heat": 2,
+        "cold": 9,
+        "wind": 6,
+        "clear-sky": -5
+      },
+      "time-of-day": {
+        "morning": 7,
+        "lunch": 3,
+        "afternoon": 7,
+        "evening": 5,
+        "late-night": -9
+      },
+      "day-of-week": {
+        "weekday": 10,
+        "weekend": -2
+      }
+    },
+
+    "ride-share": {
+      "_rationale": "Late-night bar/event traffic is the single strongest signal — safe-ride-home intent peaks here. Any bad weather strongly suppresses willingness to walk or wait at a stop. Clear-sky weather encourages walking and cycling instead.",
+      "weather": {
+        "rain": 16,
+        "snow": 19,
+        "heat": 11,
+        "cold": 13,
+        "wind": 9,
+        "clear-sky": -9
+      },
+      "time-of-day": {
+        "morning": 13,
+        "lunch": 5,
+        "afternoon": 8,
+        "evening": 16,
+        "late-night": 20
+      },
+      "day-of-week": {
+        "weekday": 7,
+        "weekend": 14
+      }
+    },
+
+    "sporting-goods": {
+      "_rationale": "Clear weather is the primary inspiration trigger — it prompts activity planning and gear browsing. Weekend is when active consumers shop. Snow is a positive signal only for winter-sport gear (net moderate positive). Rain strongly suppresses outdoor-activity intent.",
+      "weather": {
+        "rain": -11,
+        "snow": 6,
+        "heat": 9,
+        "cold": -4,
+        "wind": -3,
+        "clear-sky": 16
+      },
+      "time-of-day": {
+        "morning": 9,
+        "lunch": 3,
+        "afternoon": 11,
+        "evening": 6,
+        "late-night": -9
+      },
+      "day-of-week": {
+        "weekday": -3,
+        "weekend": 17
+      }
+    },
+
+    "outdoor-apparel": {
+      "_rationale": "Cold is the dominant purchase trigger — nothing sells parkas like a cold snap. Snow amplifies this. Wind drives layering and shell purchases. Weekends are primary shopping days for the outdoor lifestyle consumer.",
+      "weather": {
+        "rain": 9,
+        "snow": 16,
+        "heat": -6,
+        "cold": 19,
+        "wind": 12,
+        "clear-sky": 5
+      },
+      "time-of-day": {
+        "morning": 6,
+        "lunch": 4,
+        "afternoon": 10,
+        "evening": 6,
+        "late-night": -9
+      },
+      "day-of-week": {
+        "weekday": -2,
+        "weekend": 16
+      }
+    },
+
+    "home-improvement": {
+      "_rationale": "Weekend warrior projects are the defining behavior — strongest weekday/weekend delta in the set. Clear sky is essential for most outdoor work. Severe winter weather shuts down project intent almost entirely. Afternoon is peak hardware store traffic.",
+      "weather": {
+        "rain": -9,
+        "snow": -16,
+        "heat": -5,
+        "cold": -8,
+        "wind": -3,
+        "clear-sky": 17
+      },
+      "time-of-day": {
+        "morning": 9,
+        "lunch": 6,
+        "afternoon": 12,
+        "evening": 4,
+        "late-night": -12
+      },
+      "day-of-week": {
+        "weekday": -6,
+        "weekend": 19
+      }
+    }
+  }
+}

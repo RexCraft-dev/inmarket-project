@@ -382,6 +382,9 @@ export function scoreMoment(conditions, category) {
       trend:   round1dp(trendResult.score),
     },
     signals: topSignals(signals),
+    // Full annotated list (all components, all triggers) for detailed breakdown UIs.
+    // Each entry carries active:boolean and label so callers need no extra lookups.
+    all_signals: signals.map(s => ({ ...s, label: SIGNAL_LABELS[s.key] ?? s.key })),
   };
 }
 

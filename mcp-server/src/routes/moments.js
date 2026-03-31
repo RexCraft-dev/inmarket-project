@@ -44,6 +44,11 @@ const compareSchema = z.object({
   category: categorySchema,
 });
 
+const forecastSevenDaySchema = z.object({
+  city:     z.string().min(1, 'city parameter is required'),
+  category: categorySchema,
+});
+
 const triggersSchema = z.object({
   category: categorySchema,
 });
@@ -182,6 +187,73 @@ router.get('/compare', async (req, res, next) => {
       data: ranked,
       ...(failed.length > 0 && { errors: failed }),
     });
+  } catch (err) {
+    next(err);
+  }
+});
+
+// GET /forecast-7day
+router.get('/forecast-7day', async (req, res, next) => {
+  try {
+    const { city, category } = forecastSevenDaySchema.parse(req.query);
+
+    // Fetch max free-tier slots (40 × 3 h = 120 h ≈ 5 days)
+    const { city: resolvedCity, country, tz_offset, slots } =
+      await fetchHourlyForecast(city, 40);
+
+    // Score every slot, passing the next slot as the trend forecast
+    const scored = slots.map((slot, i) => {
+      const c = { ...slot, forecast: slots[i + 1] ? [slots[i + 1]] : [] };
+      const { total, breakdown, signals } = scoreMoment(c, category);
+      return { ...slot, score: total, breakdown, signals };
+    });
+
+    // Group slots into local calendar days using the city's UTC offset
+    const toLocalDate = dt => {
+      const d = new Date((dt + tz_offset) * 1000);
+      const y = d.getUTCFullYear();
+      const m = String(d.getUTCMonth() + 1).padStart(2, '0');
+      const day = String(d.getUTCDate()).padStart(2, '0');
+      return `${y}-${m}-${day}`;
+    };
+
+    const dayMap = new Map();
+    for (const slot of scored) {
+      const date = toLocalDate(slot.dt);
+      if (!dayMap.has(date)) dayMap.set(date, []);
+      dayMap.get(date).push(slot);
+    }
+
+    const days = [...dayMap.entries()].map(([date, daySlots]) => {
+      const peak = daySlots.reduce((best, s) => s.score > best.score ? s : best);
+      const avgScore = Math.round(
+        daySlots.reduce((sum, s) => sum + s.score, 0) / daySlots.length
+      );
+
+      const topActive = peak.signals.filter(s => s.active && s.weight > 0).slice(0, 2);
+      const reason = topActive.length > 0
+        ? topActive.map(s => s.label).join(' + ')
+        : 'Neutral conditions';
+
+      return {
+        date,
+        peak_score:        peak.score,
+        avg_score:         avgScore,
+        peak_hour:         peak.current_hour,
+        peak_window_start: new Date(peak.dt * 1000).toISOString(),
+        peak_window_end:   new Date((peak.dt + 10800) * 1000).toISOString(),
+        reason,
+        top_signals:  peak.signals.filter(s => s.active),
+        // Per-slot scores let the frontend draw an intraday sparkline
+        slot_scores:  daySlots.map(s => ({ hour: s.current_hour, score: s.score })),
+      };
+    });
+
+    const note = days.length < 7
+      ? `OWM free tier provides up to 5 days (${days.length} day${days.length !== 1 ? 's' : ''} available)`
+      : undefined;
+
+    res.json({ ok: true, data: { city: resolvedCity, country, category, days, ...(note && { note }) } });
   } catch (err) {
     next(err);
   }

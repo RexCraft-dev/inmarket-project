@@ -477,6 +477,168 @@
       50%       { opacity: 0.4; }
     }
 
+    /* ── Breakdown expand/collapse ────────────────────────────── */
+    .breakdown-row {
+      cursor: pointer;
+      user-select: none;
+      border-radius: var(--radius);
+      transition: background 0.1s;
+    }
+    .breakdown-row:hover { background: var(--navy-800); }
+
+    .breakdown-chevron {
+      font-size: 10px;
+      color: var(--slate-500);
+      transition: transform 0.2s;
+      margin-left: 2px;
+      flex-shrink: 0;
+    }
+    .breakdown-row.open .breakdown-chevron { transform: rotate(90deg); }
+    .breakdown-row { display: grid; grid-template-columns: 72px 1fr 42px 12px; align-items: center; gap: 10px; padding: 3px 4px; }
+
+    .breakdown-detail {
+      display: none;
+      flex-direction: column;
+      gap: 4px;
+      padding: 8px 4px 10px 80px;
+      border-bottom: 1px solid var(--navy-700);
+      margin-bottom: 2px;
+    }
+    .breakdown-detail.open { display: flex; }
+
+    .detail-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-family: var(--font-mono);
+      font-size: 11px;
+      padding: 2px 0;
+    }
+    .detail-row.active  { color: var(--slate-100); }
+    .detail-row.inactive{ color: var(--slate-500); }
+
+    .detail-row.active .detail-label::before {
+      content: '▸ ';
+      color: var(--green-500);
+    }
+
+    .detail-weight {
+      font-size: 11px;
+      min-width: 32px;
+      text-align: right;
+    }
+    .detail-row.active  .detail-weight { color: var(--slate-300); }
+    .detail-row.inactive .detail-weight { color: var(--navy-400); }
+
+    /* ── 7-day forecast strip ──────────────────────────────────── */
+    .forecast-strip {
+      flex-shrink: 0;
+      border-top: var(--border);
+      background: var(--navy-900);
+      padding: 12px 24px 14px;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+
+    .forecast-strip-header {
+      display: flex;
+      align-items: baseline;
+      gap: 12px;
+    }
+
+    .forecast-note {
+      font-family: var(--font-mono);
+      font-size: 10px;
+      color: var(--slate-500);
+      letter-spacing: 0.05em;
+    }
+
+    .forecast-grid {
+      display: flex;
+      gap: 8px;
+      overflow-x: auto;
+      padding-bottom: 2px;
+    }
+
+    .forecast-grid::-webkit-scrollbar       { height: 3px; }
+    .forecast-grid::-webkit-scrollbar-track  { background: transparent; }
+    .forecast-grid::-webkit-scrollbar-thumb  { background: var(--navy-600); border-radius: 2px; }
+
+    .day-card {
+      flex-shrink: 0;
+      width: 118px;
+      background: var(--navy-800);
+      border: var(--border);
+      border-radius: var(--radius);
+      padding: 10px 12px;
+      display: flex;
+      flex-direction: column;
+      gap: 5px;
+    }
+
+    .day-card-head {
+      display: flex;
+      justify-content: space-between;
+      align-items: baseline;
+    }
+
+    .day-name {
+      font-family: var(--font-mono);
+      font-size: 10px;
+      font-weight: 600;
+      letter-spacing: 0.12em;
+      color: var(--slate-400);
+    }
+
+    .day-date {
+      font-family: var(--font-mono);
+      font-size: 10px;
+      color: var(--slate-500);
+    }
+
+    .day-score {
+      font-family: var(--font-mono);
+      font-size: 32px;
+      font-weight: 600;
+      line-height: 1;
+      letter-spacing: -0.02em;
+    }
+
+    .day-bar-track {
+      background: var(--navy-700);
+      border-radius: 2px;
+      height: 4px;
+      overflow: hidden;
+    }
+
+    .day-bar-fill {
+      height: 100%;
+      border-radius: 2px;
+      transition: width 0.5s ease-out;
+    }
+
+    .day-meta {
+      font-family: var(--font-mono);
+      font-size: 10px;
+      color: var(--slate-400);
+    }
+
+    .day-signal {
+      font-size: 11px;
+      color: var(--slate-500);
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    /* Sparkline canvas */
+    .day-sparkline {
+      width: 100%;
+      height: 22px;
+      display: block;
+    }
+
     /* Scrollbar */
     ::-webkit-scrollbar              { width: 4px; }
     ::-webkit-scrollbar-track        { background: var(--navy-900); }
@@ -504,8 +666,11 @@
       <div class="panel-label">Query Parameters</div>
 
       <div class="field">
-        <label class="field-label" for="cityInput">City</label>
-        <input id="cityInput" type="text" value="Austin" placeholder="e.g. Austin" autocomplete="off" />
+        <label class="field-label" for="cityInput">Location</label>
+        <input id="cityInput" type="text" value="Austin" placeholder="City, zip, or city/state" autocomplete="off" />
+        <span style="font-size:11px;color:var(--slate-500);line-height:1.5">
+          Austin &nbsp;·&nbsp; Austin, TX &nbsp;·&nbsp; Austin, Texas &nbsp;·&nbsp; 78701
+        </span>
       </div>
 
       <div class="field">
@@ -562,26 +727,37 @@
       <!-- Breakdown -->
       <div class="section-title">Score Breakdown</div>
       <div class="breakdown-list">
-        <div class="breakdown-row">
+        <div class="breakdown-row" id="rowWeather" onclick="toggleDetail('weather')">
           <span class="breakdown-key">Weather</span>
           <div class="bar-track"><div class="bar-fill weather" id="barWeather"></div></div>
           <span class="breakdown-val" id="valWeather">—</span>
+          <span class="breakdown-chevron">▸</span>
         </div>
-        <div class="breakdown-row">
+        <div class="breakdown-detail" id="detail-weather"></div>
+
+        <div class="breakdown-row" id="rowTime" onclick="toggleDetail('time')">
           <span class="breakdown-key">Time</span>
           <div class="bar-track"><div class="bar-fill time" id="barTime"></div></div>
           <span class="breakdown-val" id="valTime">—</span>
+          <span class="breakdown-chevron">▸</span>
         </div>
-        <div class="breakdown-row">
+        <div class="breakdown-detail" id="detail-time"></div>
+
+        <div class="breakdown-row" id="rowDay" onclick="toggleDetail('day')">
           <span class="breakdown-key">Day</span>
           <div class="bar-track"><div class="bar-fill day" id="barDay"></div></div>
           <span class="breakdown-val" id="valDay">—</span>
+          <span class="breakdown-chevron">▸</span>
         </div>
-        <div class="breakdown-row">
+        <div class="breakdown-detail" id="detail-day"></div>
+
+        <div class="breakdown-row" id="rowTrend" onclick="toggleDetail('trend')">
           <span class="breakdown-key">Trend</span>
           <div class="bar-track"><div class="bar-fill trend" id="barTrend"></div></div>
           <span class="breakdown-val" id="valTrend">—</span>
+          <span class="breakdown-chevron">▸</span>
         </div>
+        <div class="breakdown-detail" id="detail-trend"></div>
       </div>
 
       <!-- Signals -->
@@ -623,6 +799,18 @@
     </aside>
 
   </div><!-- .panels -->
+
+  <!-- ── 7-day forecast strip ──────────────────────────────────── -->
+  <div class="forecast-strip">
+    <div class="forecast-strip-header">
+      <div class="panel-label" style="padding:0;border:none">7-Day Forecast</div>
+      <span class="forecast-note" id="forecastNote"></span>
+    </div>
+    <div class="forecast-grid" id="forecastGrid">
+      <span style="color:var(--slate-500);font-size:13px;padding:8px 0">Run an analysis to load the forecast.</span>
+    </div>
+  </div>
+
 </div><!-- .shell -->
 
 <script>
@@ -702,8 +890,8 @@
     requestAnimationFrame(tick);
   }
 
-  /* ── Breakdown bars ────────────────────────────────────────── */
-  function renderBreakdown(breakdown) {
+  /* ── Breakdown bars + detail dropdowns ────────────────────── */
+  function renderBreakdown(breakdown, allSignals) {
     const entries = [
       { bar: barWeather, val: valWeather, key: 'weather', max: 40 },
       { bar: barTime,    val: valTime,    key: 'time',    max: 30 },
@@ -712,10 +900,32 @@
     ];
     for (const { bar, val, key, max } of entries) {
       const v = breakdown[key] ?? 0;
-      // clamp to [0, max] for bar width
       bar.style.width = `${Math.max(0, Math.min(100, (v / max) * 100))}%`;
       val.textContent = v.toFixed(1);
+
+      // Populate detail panel if all_signals available
+      if (allSignals) {
+        const detailEl = $(`detail-${key}`);
+        const rows = allSignals
+          .filter(s => s.component === key)
+          .sort((a, b) => Math.abs(b.weight) - Math.abs(a.weight));
+
+        detailEl.innerHTML = rows.map(s => `
+          <div class="detail-row ${s.active ? 'active' : 'inactive'}">
+            <span class="detail-label">${s.label}</span>
+            <span class="detail-weight">${s.weight > 0 ? '+' : ''}${s.weight}</span>
+          </div>
+        `).join('') || '<span style="color:var(--slate-500);font-size:11px">No triggers</span>';
+      }
     }
+  }
+
+  /* ── Breakdown toggle ──────────────────────────────────────── */
+  function toggleDetail(component) {
+    const detail = $(`detail-${component}`);
+    const row    = $(`row${component.charAt(0).toUpperCase() + component.slice(1)}`);
+    const isOpen = detail.classList.toggle('open');
+    row.classList.toggle('open', isOpen);
   }
 
   /* ── Signals pills ─────────────────────────────────────────── */
@@ -790,6 +1000,86 @@
     errorBanner.textContent = '';
   }
 
+  /* ── 7-day forecast renderer ──────────────────────────────── */
+  function renderForecast7Day(forecastData) {
+    const grid = $('forecastGrid');
+    const noteEl = $('forecastNote');
+
+    if (forecastData.note) noteEl.textContent = forecastData.note;
+    else noteEl.textContent = '';
+
+    const { days } = forecastData;
+    if (!days?.length) {
+      grid.innerHTML = '<span style="color:var(--slate-500);font-size:13px">No forecast data returned.</span>';
+      return;
+    }
+
+    grid.innerHTML = days.map(day => {
+      // Parse YYYY-MM-DD as UTC noon to avoid timezone-shifting the label
+      const d = new Date(day.date + 'T12:00:00Z');
+      const dayName   = d.toLocaleDateString('en-US', { weekday: 'short', timeZone: 'UTC' }).toUpperCase();
+      const dateLabel = d.toLocaleDateString('en-US', { month: 'short', day: 'numeric', timeZone: 'UTC' });
+
+      const scoreClass = day.peak_score <= 40 ? 'score-red'
+                       : day.peak_score <= 69 ? 'score-amber'
+                       :                        'score-green';
+      const barColor   = day.peak_score <= 40 ? 'var(--red-500)'
+                       : day.peak_score <= 69 ? 'var(--amber-500)'
+                       :                        'var(--green-500)';
+
+      const peakH  = day.peak_hour;
+      const ampm   = peakH >= 12 ? 'PM' : 'AM';
+      const h12    = peakH % 12 || 12;
+      const cardId = `daycard-${day.date}`;
+      const canvasId = `spark-${day.date}`;
+
+      return `
+        <div class="day-card" id="${cardId}">
+          <div class="day-card-head">
+            <span class="day-name">${dayName}</span>
+            <span class="day-date">${dateLabel}</span>
+          </div>
+          <div class="day-score ${scoreClass}">${day.peak_score}</div>
+          <div class="day-bar-track">
+            <div class="day-bar-fill" style="width:${day.peak_score}%;background:${barColor}"></div>
+          </div>
+          <canvas class="day-sparkline" id="${canvasId}" width="94" height="22"></canvas>
+          <div class="day-meta">Peak ${h12}${ampm}</div>
+          <div class="day-signal">${day.top_signals?.[0]?.label ?? '—'}</div>
+        </div>
+      `;
+    }).join('');
+
+    // Draw sparklines after DOM is updated
+    requestAnimationFrame(() => {
+      days.forEach(day => {
+        const canvas = $(`spark-${day.date}`);
+        if (!canvas || !day.slot_scores?.length) return;
+        drawSparkline(canvas, day.slot_scores.map(s => s.score));
+      });
+    });
+  }
+
+  function drawSparkline(canvas, scores) {
+    const ctx = canvas.getContext('2d');
+    const w = canvas.width, h = canvas.height;
+    const min = 0, max = 100;
+    const pad = 1;
+
+    ctx.clearRect(0, 0, w, h);
+    ctx.strokeStyle = 'rgba(98,120,160,0.7)';
+    ctx.lineWidth   = 1.5;
+    ctx.lineJoin    = 'round';
+    ctx.beginPath();
+
+    scores.forEach((score, i) => {
+      const x = pad + (i / (scores.length - 1 || 1)) * (w - pad * 2);
+      const y = h - pad - ((score - min) / (max - min)) * (h - pad * 2);
+      i === 0 ? ctx.moveTo(x, y) : ctx.lineTo(x, y);
+    });
+    ctx.stroke();
+  }
+
   /* ── Main analyze handler ──────────────────────────────────── */
   async function runAnalysis() {
     const city     = cityInput.value.trim();
@@ -803,14 +1093,15 @@
     setLoading(true);
 
     try {
-      // Fire both requests in parallel
-      const [agentRes, scoreRes] = await Promise.all([
+      // Fire all three requests in parallel
+      const [agentRes, scoreRes, forecastRes] = await Promise.all([
         fetch(`${AGENT_URL}/analyze`, {
           method:  'POST',
           headers: { 'Content-Type': 'application/json' },
           body:    JSON.stringify({ question, city, category }),
         }),
         fetch(`${MCP_URL}/moments/score?city=${encodeURIComponent(city)}&category=${encodeURIComponent(category)}`),
+        fetch(`${MCP_URL}/moments/forecast-7day?city=${encodeURIComponent(city)}&category=${encodeURIComponent(category)}`),
       ]);
 
       if (!agentRes.ok || !scoreRes.ok) {
@@ -818,23 +1109,24 @@
         throw new Error(errBody.error ?? `HTTP ${agentRes.ok ? scoreRes.status : agentRes.status}`);
       }
 
-      const [agentJson, scoreJson] = await Promise.all([
+      const [agentJson, scoreJson, forecastJson] = await Promise.all([
         agentRes.json(),
         scoreRes.json(),
+        forecastRes.json().catch(() => null),  // forecast failure is non-fatal
       ]);
 
       if (!agentJson.ok) throw new Error(agentJson.error ?? 'Agent error');
       if (!scoreJson.ok) throw new Error(scoreJson.error ?? 'Score error');
 
-      const { answer }                               = agentJson.data;
-      const { score, breakdown, signals, conditions } = scoreJson.data;
-      const resolvedCity                             = scoreJson.data.city ?? city;
+      const { answer }                                          = agentJson.data;
+      const { score, breakdown, signals, all_signals, conditions } = scoreJson.data;
+      const resolvedCity                                        = scoreJson.data.city ?? city;
 
       // Render score panel
       scoreCity.textContent     = resolvedCity.toUpperCase();
       scoreCategory.textContent = category.replace(/-/g, ' ');
       animateScore(score);
-      renderBreakdown(breakdown);
+      renderBreakdown(breakdown, all_signals);
       renderSignals(signals);
 
       // Render right panel
@@ -843,6 +1135,9 @@
       answerText.textContent = answer;
       answerText.classList.remove('placeholder');
       if (conditions) renderConditions(conditions);
+
+      // Render 7-day strip (non-fatal if unavailable)
+      if (forecastJson?.ok) renderForecast7Day(forecastJson.data);
 
       topbarMeta.textContent = `LAST RUN ${new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}`;
 

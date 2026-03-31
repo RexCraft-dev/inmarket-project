@@ -20,3 +20,4 @@ build/
 
 # Docker
 *.pid
+.env.example

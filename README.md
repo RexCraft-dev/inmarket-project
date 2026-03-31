@@ -2,6 +2,10 @@
 
 Real-time advertising activation platform that scores the current moment (0–100) for a brand category in any city, and delivers a **BUY / HOLD / WAIT** recommendation powered by a LangChain agent.
 
+## Why Moments Intelligence
+
+InMarket's core product identifies high-intent consumer moments for real-time ad activation. This project mirrors that concept — given a brand category and city, the agent scores the current moment 0–100 using real-time weather, time-of-day, and day-of-week signals, then recommends whether to activate media spend now. A cold rainy Monday morning is a strong moment for coffee; a clear sunny Saturday afternoon is not. Rather than relying on static dayparting schedules, the scoring engine responds to actual conditions so media buyers can act on what's happening, not what usually happens.
+
 ## Services
 
 | Service | Directory | Port | Description |

@@ -4,7 +4,7 @@
 // Reads the changed file path from stdin JSON, then invokes the docs subagent.
 
 import { readFileSync } from "fs";
-import { execSync } from "child_process";
+import { spawn } from "child_process";
 import { extname, relative } from "path";
 
 // ── Parse hook payload from stdin ───────────────────────────────────────────
@@ -35,13 +35,22 @@ if (SKIP_PATTERNS.some((p) => p.test(relPath))) process.exit(0);
 const WATCHED_EXTENSIONS = new Set([".js", ".json", ".md", ".yml", ".yaml"]);
 if (!WATCHED_EXTENSIONS.has(extname(filePath))) process.exit(0);
 
-// ── Invoke the docs subagent via Claude Code headless mode ───────────────────
-// Runs async (backgrounded) so it never blocks Claude's main session
+// ── Resolve claude binary ────────────────────────────────────────────────────
+// Use the known install path; fall back to PATH resolution via shell.
+const CLAUDE_BIN = "/home/rcraft/.local/bin/claude";
+
+// ── Invoke the docs subagent — fire-and-forget ───────────────────────────────
+// spawn + detached + unref so the hook never blocks Claude's main session.
 try {
-  execSync(
-    `claude -p "Use the docs subagent to update documentation for the file that was just changed: ${relPath}" --async`,
-    { stdio: "ignore", timeout: 5000 }
+  const child = spawn(
+    CLAUDE_BIN,
+    ["-p", `Use the docs subagent to update documentation for the file that was just changed: ${relPath}`],
+    {
+      detached: true,
+      stdio: "ignore",
+    }
   );
+  child.unref();
 } catch {
   // Silently fail — doc updates are best-effort, never blocking
 }

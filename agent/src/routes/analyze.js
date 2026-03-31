@@ -29,6 +29,18 @@ async function mcpGetJson(path, params = {}) {
   return res.json();
 }
 
+// ─── Valid category slugs (mirrors MCP category-triggers.json) ───────────────
+
+const VALID_CATEGORIES = /** @type {[string, ...string[]]} */ ([
+  'coffee', 'delivery-food', 'grocery', 'auto-insurance',
+  'ride-share', 'sporting-goods', 'outdoor-apparel',
+  'home-improvement', 'quick-service-restaurant',
+]);
+
+const categorySchema = z
+  .enum(VALID_CATEGORIES)
+  .describe(`Brand category slug. Must be one of: ${VALID_CATEGORIES.join(', ')}`);
+
 // ─── LangChain tools ──────────────────────────────────────────────────────────
 
 const tools = [
@@ -42,7 +54,7 @@ const tools = [
         'Use this for a real-time read on whether conditions favour activation.',
       schema: z.object({
         city:     z.string().describe('City name, e.g. "Austin"'),
-        category: z.string().describe('Brand category slug, e.g. "coffee" or "delivery-food"'),
+        category: categorySchema,
       }),
     }
   ),
@@ -57,7 +69,7 @@ const tools = [
         'Use this to recommend a flight window rather than immediate activation.',
       schema: z.object({
         city:     z.string().describe('City name'),
-        category: z.string().describe('Brand category slug'),
+        category: categorySchema,
         hours:    z.number().int().min(1).max(48).optional()
                     .describe('Hours ahead to scan (default 6, max 48)'),
       }),
@@ -74,8 +86,8 @@ const tools = [
         'Returns a ranked list with scores, breakdowns, and active signals per city. ' +
         'Use this for geo-targeting decisions and budget allocation across markets.',
       schema: z.object({
-        cities:   z.array(z.string()).min(2).describe('List of city names to compare'),
-        category: z.string().describe('Brand category slug'),
+        cities:   z.array(z.string()).min(2).max(10).describe('List of 2–10 city names to compare'),
+        category: categorySchema,
       }),
     }
   ),
@@ -89,7 +101,7 @@ const tools = [
         'weather conditions, time-of-day slots, and day-of-week. ' +
         'Use this to explain what drives or suppresses scores for the category.',
       schema: z.object({
-        category: z.string().describe('Brand category slug'),
+        category: categorySchema,
       }),
     }
   ),

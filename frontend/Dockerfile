@@ -19,17 +19,15 @@ RUN rm -f /etc/nginx/conf.d/default.conf /usr/share/nginx/html/*
 # Copy static asset from builder
 COPY --from=builder /app/index.html /usr/share/nginx/html/index.html
 
-# Copy our custom nginx config
+# Copy configs — main conf sets pid /tmp/nginx.pid for non-root operation
+COPY nginx.main.conf /etc/nginx/nginx.conf
 COPY nginx.conf /etc/nginx/conf.d/default.conf
 
 EXPOSE 8080
 
 # nginx:alpine ships with a non-root 'nginx' user (uid 101).
-# The default entrypoint starts the master process as root to bind ports and
-# then drops workers to the nginx user; to run entirely non-root we need
-# to bind a port >=1024 (8080 qualifies) and adjust the pid path.
-RUN sed -i 's|/var/run/nginx.pid|/tmp/nginx.pid|g' /etc/nginx/nginx.conf \
-    && chown -R nginx:nginx /var/cache/nginx /usr/share/nginx/html
+# Port 8080 (>=1024) and pid /tmp/nginx.pid allow fully rootless operation.
+RUN chown -R nginx:nginx /var/cache/nginx /usr/share/nginx/html
 
 USER nginx
 

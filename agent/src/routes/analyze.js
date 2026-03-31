@@ -70,7 +70,7 @@ const tools = [
       schema: z.object({
         city:     z.string().describe('City name'),
         category: categorySchema,
-        hours:    z.number().int().min(1).max(48).optional()
+        hours:    z.number().int().min(1).max(48).default(6)
                     .describe('Hours ahead to scan (default 6, max 48)'),
       }),
     }

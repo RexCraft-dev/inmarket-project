@@ -1,0 +1,866 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Moments Intelligence</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@300;400;500;600&display=swap" rel="stylesheet" />
+  <style>
+    /* ── Reset & base ─────────────────────────────────────────── */
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --navy-950: #050c1a;
+      --navy-900: #091526;
+      --navy-800: #0d1f38;
+      --navy-700: #112849;
+      --navy-600: #163259;
+      --navy-400: #2a5080;
+      --navy-300: #3a6699;
+
+      --slate-500: #4a5e78;
+      --slate-400: #6278a0;
+      --slate-300: #8898b8;
+      --slate-200: #a8b8d0;
+      --slate-100: #c8d4e4;
+      --slate-050: #e8eef6;
+
+      --red-600:   #c0392b;
+      --red-500:   #e74c3c;
+      --red-100:   #2d1010;
+      --amber-600: #d35400;
+      --amber-500: #e67e22;
+      --amber-100: #2d1c06;
+      --green-600: #1e8449;
+      --green-500: #27ae60;
+      --green-100: #0a1f12;
+
+      --buy-color:  var(--green-500);
+      --hold-color: var(--amber-500);
+      --wait-color: var(--red-500);
+
+      --font-mono: 'IBM Plex Mono', monospace;
+      --font-sans: 'IBM Plex Sans', sans-serif;
+
+      --border: 1px solid var(--navy-600);
+      --radius: 4px;
+    }
+
+    html, body {
+      height: 100%;
+      background: var(--navy-950);
+      color: var(--slate-100);
+      font-family: var(--font-sans);
+      font-size: 14px;
+      line-height: 1.5;
+    }
+
+    /* ── Shell ────────────────────────────────────────────────── */
+    .shell {
+      display: flex;
+      flex-direction: column;
+      height: 100vh;
+      overflow: hidden;
+    }
+
+    .topbar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 24px;
+      height: 48px;
+      background: var(--navy-900);
+      border-bottom: var(--border);
+      flex-shrink: 0;
+    }
+
+    .topbar-brand {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .topbar-wordmark {
+      font-family: var(--font-mono);
+      font-size: 13px;
+      font-weight: 600;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      color: var(--slate-050);
+    }
+
+    .topbar-dot {
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      background: var(--green-500);
+    }
+
+    .topbar-meta {
+      font-family: var(--font-mono);
+      font-size: 11px;
+      color: var(--slate-400);
+      letter-spacing: 0.05em;
+    }
+
+    /* ── Three-panel body ─────────────────────────────────────── */
+    .panels {
+      display: grid;
+      grid-template-columns: 280px 1fr 360px;
+      flex: 1;
+      min-height: 0;
+      gap: 0;
+    }
+
+    .panel {
+      border-right: var(--border);
+      padding: 24px;
+      overflow-y: auto;
+      display: flex;
+      flex-direction: column;
+      gap: 20px;
+    }
+
+    .panel:last-child { border-right: none; }
+
+    .panel-label {
+      font-family: var(--font-mono);
+      font-size: 10px;
+      font-weight: 600;
+      letter-spacing: 0.15em;
+      text-transform: uppercase;
+      color: var(--slate-400);
+      padding-bottom: 12px;
+      border-bottom: var(--border);
+    }
+
+    /* ── Left panel — inputs ──────────────────────────────────── */
+    .field { display: flex; flex-direction: column; gap: 6px; }
+
+    .field-label {
+      font-size: 11px;
+      font-weight: 500;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+      color: var(--slate-300);
+    }
+
+    .field input,
+    .field select,
+    .field textarea {
+      background: var(--navy-800);
+      border: var(--border);
+      border-radius: var(--radius);
+      color: var(--slate-050);
+      font-family: var(--font-sans);
+      font-size: 14px;
+      padding: 9px 12px;
+      outline: none;
+      transition: border-color 0.15s;
+      width: 100%;
+    }
+
+    .field input:focus,
+    .field select:focus,
+    .field textarea:focus {
+      border-color: var(--navy-300);
+    }
+
+    .field select {
+      appearance: none;
+      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%236278a0' stroke-width='1.5' fill='none' stroke-linecap='round'/%3E%3C/svg%3E");
+      background-repeat: no-repeat;
+      background-position: right 12px center;
+      padding-right: 32px;
+      cursor: pointer;
+    }
+
+    .field select option { background: var(--navy-800); }
+
+    .field textarea {
+      resize: vertical;
+      min-height: 80px;
+      font-size: 13px;
+      line-height: 1.6;
+    }
+
+    .btn-analyze {
+      background: var(--navy-700);
+      border: 1px solid var(--navy-400);
+      border-radius: var(--radius);
+      color: var(--slate-050);
+      cursor: pointer;
+      font-family: var(--font-mono);
+      font-size: 12px;
+      font-weight: 600;
+      letter-spacing: 0.1em;
+      padding: 11px 16px;
+      text-transform: uppercase;
+      transition: background 0.15s, border-color 0.15s;
+      width: 100%;
+    }
+
+    .btn-analyze:hover:not(:disabled) {
+      background: var(--navy-600);
+      border-color: var(--navy-300);
+    }
+
+    .btn-analyze:disabled {
+      opacity: 0.45;
+      cursor: not-allowed;
+    }
+
+    .btn-analyze.loading::after {
+      content: ' ···';
+      animation: blink 1s step-start infinite;
+    }
+
+    @keyframes blink {
+      0%, 100% { opacity: 1; }
+      50%       { opacity: 0.3; }
+    }
+
+    .error-banner {
+      background: var(--red-100);
+      border: 1px solid var(--red-600);
+      border-radius: var(--radius);
+      color: #e88;
+      font-size: 12px;
+      padding: 10px 12px;
+      display: none;
+    }
+
+    .error-banner.visible { display: block; }
+
+    /* ── Center panel — score ─────────────────────────────────── */
+    .score-hero {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 24px 0 20px;
+      gap: 8px;
+    }
+
+    .score-city {
+      font-family: var(--font-mono);
+      font-size: 11px;
+      letter-spacing: 0.15em;
+      text-transform: uppercase;
+      color: var(--slate-400);
+    }
+
+    .score-number {
+      font-family: var(--font-mono);
+      font-size: 96px;
+      font-weight: 600;
+      line-height: 1;
+      letter-spacing: -0.03em;
+      transition: color 0.4s;
+      color: var(--slate-200);
+    }
+
+    .score-number.score-red    { color: var(--red-500);   }
+    .score-number.score-amber  { color: var(--amber-500); }
+    .score-number.score-green  { color: var(--green-500); }
+
+    .score-label {
+      font-size: 11px;
+      font-weight: 500;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      color: var(--slate-400);
+    }
+
+    /* Gauge arc */
+    .gauge-wrap {
+      width: 200px;
+      height: 104px;
+      position: relative;
+      overflow: hidden;
+      margin: 4px auto 0;
+    }
+
+    .gauge-svg {
+      width: 200px;
+      height: 200px;
+      position: absolute;
+      top: 0;
+      left: 0;
+    }
+
+    /* Section divider */
+    .section-title {
+      font-family: var(--font-mono);
+      font-size: 10px;
+      font-weight: 600;
+      letter-spacing: 0.15em;
+      text-transform: uppercase;
+      color: var(--slate-500);
+      padding-bottom: 8px;
+      border-bottom: var(--border);
+    }
+
+    /* Breakdown bars */
+    .breakdown-list {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+
+    .breakdown-row {
+      display: grid;
+      grid-template-columns: 72px 1fr 42px;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .breakdown-key {
+      font-family: var(--font-mono);
+      font-size: 11px;
+      color: var(--slate-300);
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+    }
+
+    .bar-track {
+      background: var(--navy-800);
+      border-radius: 2px;
+      height: 6px;
+      overflow: hidden;
+    }
+
+    .bar-fill {
+      height: 100%;
+      border-radius: 2px;
+      background: var(--slate-400);
+      width: 0%;
+      transition: width 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+
+    .bar-fill.weather { background: var(--navy-300); }
+    .bar-fill.time    { background: var(--slate-400); }
+    .bar-fill.day     { background: var(--slate-300); }
+    .bar-fill.trend   { background: var(--amber-500); }
+
+    .breakdown-val {
+      font-family: var(--font-mono);
+      font-size: 11px;
+      color: var(--slate-300);
+      text-align: right;
+    }
+
+    /* Signals */
+    .signals-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+    }
+
+    .signal-pill {
+      border-radius: 2px;
+      font-family: var(--font-mono);
+      font-size: 11px;
+      padding: 4px 9px;
+      border: 1px solid transparent;
+      white-space: nowrap;
+    }
+
+    .signal-pill.active {
+      background: var(--navy-700);
+      border-color: var(--navy-400);
+      color: var(--slate-100);
+    }
+
+    .signal-pill.inactive {
+      background: transparent;
+      border-color: var(--navy-600);
+      color: var(--slate-500);
+    }
+
+    .signal-weight {
+      margin-left: 5px;
+      opacity: 0.6;
+      font-size: 10px;
+    }
+
+    /* ── Right panel — recommendation ─────────────────────────── */
+    .verdict-badge {
+      display: inline-flex;
+      align-items: center;
+      border-radius: var(--radius);
+      font-family: var(--font-mono);
+      font-size: 22px;
+      font-weight: 600;
+      letter-spacing: 0.12em;
+      padding: 10px 20px;
+      text-transform: uppercase;
+      border: 1px solid transparent;
+    }
+
+    .verdict-badge.buy {
+      background: var(--green-100);
+      border-color: var(--green-600);
+      color: var(--green-500);
+    }
+
+    .verdict-badge.hold {
+      background: var(--amber-100);
+      border-color: var(--amber-600);
+      color: var(--amber-500);
+    }
+
+    .verdict-badge.wait {
+      background: var(--red-100);
+      border-color: var(--red-600);
+      color: var(--red-500);
+    }
+
+    .verdict-badge.pending {
+      background: var(--navy-800);
+      border-color: var(--navy-600);
+      color: var(--slate-500);
+    }
+
+    .answer-text {
+      font-size: 14px;
+      line-height: 1.7;
+      color: var(--slate-200);
+      white-space: pre-wrap;
+    }
+
+    .answer-text.placeholder {
+      color: var(--slate-500);
+      font-style: italic;
+    }
+
+    /* Conditions card */
+    .conditions-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+    }
+
+    .cond-item {
+      background: var(--navy-800);
+      border: var(--border);
+      border-radius: var(--radius);
+      padding: 10px 12px;
+    }
+
+    .cond-key {
+      font-family: var(--font-mono);
+      font-size: 10px;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      color: var(--slate-500);
+      margin-bottom: 4px;
+    }
+
+    .cond-val {
+      font-family: var(--font-mono);
+      font-size: 14px;
+      font-weight: 500;
+      color: var(--slate-100);
+    }
+
+    /* Loading skeleton pulse */
+    .skeleton {
+      background: var(--navy-800);
+      border-radius: var(--radius);
+      animation: pulse 1.4s ease-in-out infinite;
+    }
+
+    @keyframes pulse {
+      0%, 100% { opacity: 1; }
+      50%       { opacity: 0.4; }
+    }
+
+    /* Scrollbar */
+    ::-webkit-scrollbar              { width: 4px; }
+    ::-webkit-scrollbar-track        { background: var(--navy-900); }
+    ::-webkit-scrollbar-thumb        { background: var(--navy-600); border-radius: 2px; }
+    ::-webkit-scrollbar-thumb:hover  { background: var(--navy-400); }
+  </style>
+</head>
+<body>
+<div class="shell">
+
+  <!-- Topbar -->
+  <header class="topbar">
+    <div class="topbar-brand">
+      <div class="topbar-dot" id="statusDot"></div>
+      <span class="topbar-wordmark">Moments Intelligence</span>
+    </div>
+    <span class="topbar-meta" id="topbarMeta">READY</span>
+  </header>
+
+  <!-- Panels -->
+  <div class="panels">
+
+    <!-- ── LEFT — inputs ───────────────────────────────────────── -->
+    <aside class="panel">
+      <div class="panel-label">Query Parameters</div>
+
+      <div class="field">
+        <label class="field-label" for="cityInput">City</label>
+        <input id="cityInput" type="text" value="Austin" placeholder="e.g. Austin" autocomplete="off" />
+      </div>
+
+      <div class="field">
+        <label class="field-label" for="categorySelect">Category</label>
+        <select id="categorySelect">
+          <option value="quick-service-restaurant">Quick Service Restaurant</option>
+          <option value="coffee" selected>Coffee</option>
+          <option value="delivery-food">Delivery Food</option>
+          <option value="grocery">Grocery</option>
+          <option value="auto-insurance">Auto Insurance</option>
+          <option value="ride-share">Ride Share</option>
+          <option value="sporting-goods">Sporting Goods</option>
+          <option value="outdoor-apparel">Outdoor Apparel</option>
+          <option value="home-improvement">Home Improvement</option>
+        </select>
+      </div>
+
+      <div class="field">
+        <label class="field-label" for="questionInput">Question</label>
+        <textarea id="questionInput" rows="4" placeholder="e.g. Should I activate media spend for this market right now?">Should I activate media spend for this market right now?</textarea>
+      </div>
+
+      <button class="btn-analyze" id="analyzeBtn">Analyze Moment</button>
+
+      <div class="error-banner" id="errorBanner"></div>
+    </aside>
+
+    <!-- ── CENTER — score ──────────────────────────────────────── -->
+    <main class="panel">
+      <div class="panel-label">Moment Score</div>
+
+      <!-- Score hero -->
+      <div class="score-hero">
+        <div class="score-city" id="scoreCity">—</div>
+        <div class="score-number" id="scoreNumber">—</div>
+        <div class="score-label" id="scoreCategory">awaiting analysis</div>
+
+        <!-- Gauge arc -->
+        <div class="gauge-wrap">
+          <svg class="gauge-svg" viewBox="0 0 200 200" fill="none">
+            <!-- Track arc (half circle) -->
+            <path id="gaugeTrack"
+              d="M 20 100 A 80 80 0 0 1 180 100"
+              stroke="#112849" stroke-width="12" stroke-linecap="round" fill="none" />
+            <!-- Value arc -->
+            <path id="gaugeArc"
+              d="M 20 100 A 80 80 0 0 1 180 100"
+              stroke="#2a5080" stroke-width="12" stroke-linecap="round" fill="none"
+              stroke-dasharray="251.2" stroke-dashoffset="251.2" />
+          </svg>
+        </div>
+      </div>
+
+      <!-- Breakdown -->
+      <div class="section-title">Score Breakdown</div>
+      <div class="breakdown-list">
+        <div class="breakdown-row">
+          <span class="breakdown-key">Weather</span>
+          <div class="bar-track"><div class="bar-fill weather" id="barWeather"></div></div>
+          <span class="breakdown-val" id="valWeather">—</span>
+        </div>
+        <div class="breakdown-row">
+          <span class="breakdown-key">Time</span>
+          <div class="bar-track"><div class="bar-fill time" id="barTime"></div></div>
+          <span class="breakdown-val" id="valTime">—</span>
+        </div>
+        <div class="breakdown-row">
+          <span class="breakdown-key">Day</span>
+          <div class="bar-track"><div class="bar-fill day" id="barDay"></div></div>
+          <span class="breakdown-val" id="valDay">—</span>
+        </div>
+        <div class="breakdown-row">
+          <span class="breakdown-key">Trend</span>
+          <div class="bar-track"><div class="bar-fill trend" id="barTrend"></div></div>
+          <span class="breakdown-val" id="valTrend">—</span>
+        </div>
+      </div>
+
+      <!-- Signals -->
+      <div class="section-title">Top Signals</div>
+      <div class="signals-row" id="signalsRow">
+        <span style="color: var(--slate-500); font-size: 13px;">Run an analysis to see signals.</span>
+      </div>
+    </main>
+
+    <!-- ── RIGHT — recommendation ──────────────────────────────── -->
+    <aside class="panel">
+      <div class="panel-label">Agent Recommendation</div>
+
+      <div class="verdict-badge pending" id="verdictBadge">— / — / —</div>
+
+      <div class="answer-text placeholder" id="answerText">
+        Run an analysis to receive a media buying recommendation.
+      </div>
+
+      <div class="section-title">Current Conditions</div>
+      <div class="conditions-grid">
+        <div class="cond-item">
+          <div class="cond-key">Temp</div>
+          <div class="cond-val" id="condTemp">—</div>
+        </div>
+        <div class="cond-item">
+          <div class="cond-key">Sky</div>
+          <div class="cond-val" id="condSky">—</div>
+        </div>
+        <div class="cond-item">
+          <div class="cond-key">Wind</div>
+          <div class="cond-val" id="condWind">—</div>
+        </div>
+        <div class="cond-item">
+          <div class="cond-key">Local Time</div>
+          <div class="cond-val" id="condHour">—</div>
+        </div>
+      </div>
+    </aside>
+
+  </div><!-- .panels -->
+</div><!-- .shell -->
+
+<script>
+  /* ── Element refs ──────────────────────────────────────────── */
+  const $ = id => document.getElementById(id);
+
+  const cityInput      = $('cityInput');
+  const categorySelect = $('categorySelect');
+  const questionInput  = $('questionInput');
+  const analyzeBtn     = $('analyzeBtn');
+  const errorBanner    = $('errorBanner');
+  const statusDot      = $('statusDot');
+  const topbarMeta     = $('topbarMeta');
+
+  const scoreCity     = $('scoreCity');
+  const scoreNumber   = $('scoreNumber');
+  const scoreCategory = $('scoreCategory');
+  const gaugeArc      = $('gaugeArc');
+
+  const barWeather = $('barWeather');
+  const barTime    = $('barTime');
+  const barDay     = $('barDay');
+  const barTrend   = $('barTrend');
+  const valWeather = $('valWeather');
+  const valTime    = $('valTime');
+  const valDay     = $('valDay');
+  const valTrend   = $('valTrend');
+  const signalsRow = $('signalsRow');
+
+  const verdictBadge = $('verdictBadge');
+  const answerText   = $('answerText');
+  const condTemp     = $('condTemp');
+  const condSky      = $('condSky');
+  const condWind     = $('condWind');
+  const condHour     = $('condHour');
+
+  /* ── Constants ─────────────────────────────────────────────── */
+  const AGENT_URL = 'http://localhost:3000';
+  const MCP_URL   = 'http://localhost:3001';
+
+  // Arc circumference for r=80 half-circle: π × r = 251.2
+  const ARC_LEN = 251.2;
+
+  const CATEGORY_MAXES = { weather: 40, time: 30, day: 20, trend: 10 };
+
+  /* ── Gauge animation ───────────────────────────────────────── */
+  function animateScore(targetScore) {
+    const duration = 800;
+    const start    = performance.now();
+    const startVal = parseFloat(scoreNumber.textContent) || 0;
+
+    function tick(now) {
+      const progress = Math.min((now - start) / duration, 1);
+      // ease-out cubic
+      const ease   = 1 - Math.pow(1 - progress, 3);
+      const current = Math.round(startVal + (targetScore - startVal) * ease);
+
+      // Number
+      scoreNumber.textContent = current;
+
+      // Color class
+      scoreNumber.classList.remove('score-red', 'score-amber', 'score-green');
+      if (current <= 40)      scoreNumber.classList.add('score-red');
+      else if (current <= 69) scoreNumber.classList.add('score-amber');
+      else                    scoreNumber.classList.add('score-green');
+
+      // Arc
+      const fill = current / 100;
+      gaugeArc.style.strokeDashoffset = ARC_LEN * (1 - fill);
+      if (current <= 40)      gaugeArc.style.stroke = '#e74c3c';
+      else if (current <= 69) gaugeArc.style.stroke = '#e67e22';
+      else                    gaugeArc.style.stroke = '#27ae60';
+
+      if (progress < 1) requestAnimationFrame(tick);
+    }
+
+    requestAnimationFrame(tick);
+  }
+
+  /* ── Breakdown bars ────────────────────────────────────────── */
+  function renderBreakdown(breakdown) {
+    const entries = [
+      { bar: barWeather, val: valWeather, key: 'weather', max: 40 },
+      { bar: barTime,    val: valTime,    key: 'time',    max: 30 },
+      { bar: barDay,     val: valDay,     key: 'day',     max: 20 },
+      { bar: barTrend,   val: valTrend,   key: 'trend',   max: 10 },
+    ];
+    for (const { bar, val, key, max } of entries) {
+      const v = breakdown[key] ?? 0;
+      // clamp to [0, max] for bar width
+      bar.style.width = `${Math.max(0, Math.min(100, (v / max) * 100))}%`;
+      val.textContent = v.toFixed(1);
+    }
+  }
+
+  /* ── Signals pills ─────────────────────────────────────────── */
+  function renderSignals(signals) {
+    if (!signals?.length) {
+      signalsRow.innerHTML = '<span style="color:var(--slate-500);font-size:13px">No signals returned.</span>';
+      return;
+    }
+    signalsRow.innerHTML = signals.map(s => `
+      <span class="signal-pill ${s.active ? 'active' : 'inactive'}" title="${s.component}">
+        ${s.label ?? s.key}
+        <span class="signal-weight">${s.weight > 0 ? '+' : ''}${s.weight}</span>
+      </span>
+    `).join('');
+  }
+
+  /* ── Verdict parsing ───────────────────────────────────────── */
+  function parseVerdict(text) {
+    const t = text.toUpperCase();
+    if (t.includes('BUY'))  return 'buy';
+    if (t.includes('WAIT')) return 'wait';
+    if (t.includes('HOLD')) return 'hold';
+    return null;
+  }
+
+  function renderVerdict(verdict) {
+    verdictBadge.className = 'verdict-badge ' + (verdict ?? 'pending');
+    verdictBadge.textContent =
+      verdict === 'buy'  ? 'BUY'  :
+      verdict === 'hold' ? 'HOLD' :
+      verdict === 'wait' ? 'WAIT' :
+      '— / — / —';
+  }
+
+  /* ── Conditions card ───────────────────────────────────────── */
+  function renderConditions(cond) {
+    condTemp.textContent = cond.temp_f  != null ? `${Math.round(cond.temp_f)}°F` : '—';
+    condSky.textContent  = cond.description ? capitalise(cond.description) : '—';
+    condWind.textContent = cond.wind_speed != null ? `${Math.round(cond.wind_speed)} mph` : '—';
+
+    if (cond.current_hour != null) {
+      const h   = cond.current_hour;
+      const ampm = h >= 12 ? 'PM' : 'AM';
+      const h12  = h % 12 || 12;
+      condHour.textContent = `${h12}:00 ${ampm} local`;
+    } else {
+      condHour.textContent = '—';
+    }
+  }
+
+  function capitalise(str) {
+    return str.charAt(0).toUpperCase() + str.slice(1);
+  }
+
+  /* ── Loading state ─────────────────────────────────────────── */
+  function setLoading(loading) {
+    analyzeBtn.disabled = loading;
+    analyzeBtn.classList.toggle('loading', loading);
+    analyzeBtn.textContent = loading ? 'Analyzing' : 'Analyze Moment';
+    statusDot.style.background = loading ? 'var(--amber-500)' : 'var(--green-500)';
+    topbarMeta.textContent     = loading ? 'LOADING' : 'READY';
+  }
+
+  /* ── Error banner ──────────────────────────────────────────── */
+  function showError(msg) {
+    errorBanner.textContent = msg;
+    errorBanner.classList.add('visible');
+  }
+
+  function clearError() {
+    errorBanner.classList.remove('visible');
+    errorBanner.textContent = '';
+  }
+
+  /* ── Main analyze handler ──────────────────────────────────── */
+  async function runAnalysis() {
+    const city     = cityInput.value.trim();
+    const category = categorySelect.value;
+    const question = questionInput.value.trim();
+
+    if (!city)     { showError('Please enter a city.'); return; }
+    if (!question) { showError('Please enter a question.'); return; }
+
+    clearError();
+    setLoading(true);
+
+    try {
+      // Fire both requests in parallel
+      const [agentRes, scoreRes] = await Promise.all([
+        fetch(`${AGENT_URL}/analyze`, {
+          method:  'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body:    JSON.stringify({ question, city, category }),
+        }),
+        fetch(`${MCP_URL}/moments/score?city=${encodeURIComponent(city)}&category=${encodeURIComponent(category)}`),
+      ]);
+
+      if (!agentRes.ok || !scoreRes.ok) {
+        const errBody = await (agentRes.ok ? scoreRes : agentRes).json().catch(() => ({}));
+        throw new Error(errBody.error ?? `HTTP ${agentRes.ok ? scoreRes.status : agentRes.status}`);
+      }
+
+      const [agentJson, scoreJson] = await Promise.all([
+        agentRes.json(),
+        scoreRes.json(),
+      ]);
+
+      if (!agentJson.ok) throw new Error(agentJson.error ?? 'Agent error');
+      if (!scoreJson.ok) throw new Error(scoreJson.error ?? 'Score error');
+
+      const { answer }                               = agentJson.data;
+      const { score, breakdown, signals, conditions } = scoreJson.data;
+      const resolvedCity                             = scoreJson.data.city ?? city;
+
+      // Render score panel
+      scoreCity.textContent     = resolvedCity.toUpperCase();
+      scoreCategory.textContent = category.replace(/-/g, ' ');
+      animateScore(score);
+      renderBreakdown(breakdown);
+      renderSignals(signals);
+
+      // Render right panel
+      const verdict = parseVerdict(answer);
+      renderVerdict(verdict);
+      answerText.textContent = answer;
+      answerText.classList.remove('placeholder');
+      if (conditions) renderConditions(conditions);
+
+      topbarMeta.textContent = `LAST RUN ${new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}`;
+
+    } catch (err) {
+      showError(`Analysis failed: ${err.message}`);
+      statusDot.style.background = 'var(--red-500)';
+      topbarMeta.textContent = 'ERROR';
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  /* ── Event listeners ───────────────────────────────────────── */
+  analyzeBtn.addEventListener('click', runAnalysis);
+
+  questionInput.addEventListener('keydown', e => {
+    if (e.key === 'Enter' && (e.metaKey || e.ctrlKey)) runAnalysis();
+  });
+</script>
+</body>
+</html>

@@ -232,14 +232,77 @@ Runs the LangChain agent and returns a BUY / HOLD / WAIT recommendation plus str
 
 ## LangChain Tools (agent-internal)
 
-These tools are available to the LLM during agent execution. They wrap MCP server endpoints.
+These tools are available to the LLM during agent execution. They are defined in `agent/src/routes/analyze.js` and wrap MCP server endpoints. The agent runs up to 5 tool-calling iterations per request.
 
-| Tool | MCP endpoint | Key params |
+Valid `category` enum for all tools: `coffee`, `delivery-food`, `grocery`, `auto-insurance`, `ride-share`, `sporting-goods`, `outdoor-apparel`, `home-improvement`, `quick-service-restaurant`
+
+---
+
+### get_moment_score
+
+**MCP endpoint:** `GET /moments/score`
+
+**Description:** Get the current moment relevance score (0–100) for a city and brand category. Returns score, weather/time/day/trend breakdown, and top 3 signals with active flags. Use this for a real-time read on whether conditions favour activation.
+
+**Zod schema:**
+| Param | Type | Required | Description |
+|---|---|---|---|
+| `city` | string | Yes | City name, e.g. `"Austin"` |
+| `category` | enum (9 slugs) | Yes | Brand category slug |
+
+---
+
+### get_forecast_window
+
+**MCP endpoint:** `GET /moments/forecast-window`
+
+**Description:** Find the best upcoming activation window within the next N hours for a city and category. Returns start/end time (UTC), peak score, local peak hour, and a plain-language reason. Use this to recommend a flight window rather than immediate activation.
+
+**Zod schema:**
+| Param | Type | Required | Default | Constraints |
+|---|---|---|---|---|
+| `city` | string | Yes | — | — |
+| `category` | enum (9 slugs) | Yes | — | — |
+| `hours` | integer | No | `6` | min 1, max 48 |
+
+---
+
+### compare_moments
+
+**MCP endpoint:** `GET /moments/compare`
+
+**Description:** Score and rank 2–10 cities by moment relevance for a category. Returns a ranked list with scores, breakdowns, and active signals per city. Use this for geo-targeting decisions and budget allocation across markets.
+
+**Zod schema:**
+| Param | Type | Required | Constraints |
+|---|---|---|---|
+| `cities` | string[] | Yes | min 2 items, max 10 items |
+| `category` | enum (9 slugs) | Yes | — |
+
+Note: the agent joins the `cities` array with commas before sending to the MCP endpoint.
+
+---
+
+### get_triggers
+
+**MCP endpoint:** `GET /moments/triggers`
+
+**Description:** Return the raw scoring weights for every trigger in a category: weather conditions, time-of-day slots, and day-of-week. Use this to explain what drives or suppresses scores for the category.
+
+**Zod schema:**
+| Param | Type | Required |
 |---|---|---|
-| `get_moment_score` | `GET /moments/score` | `city`, `category` |
-| `get_forecast_window` | `GET /moments/forecast-window` | `city`, `category`, `hours` (default 6) |
-| `compare_moments` | `GET /moments/compare` | `cities[]` (2–10), `category` |
-| `get_triggers` | `GET /moments/triggers` | `category` |
-| `get_conditions` | `GET /moments/conditions` | `city` |
+| `category` | enum (9 slugs) | Yes |
 
-Valid `category` values: `coffee`, `delivery-food`, `grocery`, `auto-insurance`, `ride-share`, `sporting-goods`, `outdoor-apparel`, `home-improvement`, `quick-service-restaurant`
+---
+
+### get_conditions
+
+**MCP endpoint:** `GET /moments/conditions`
+
+**Description:** Return current normalized weather conditions for a city: temperature (°F), OWM weather code, wind speed (mph), local hour, and day of week. Use this when you need raw conditions before scoring.
+
+**Zod schema:**
+| Param | Type | Required | Description |
+|---|---|---|---|
+| `city` | string | Yes | City name |

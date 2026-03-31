@@ -1,6 +1,8 @@
 # Environment Variables
 
-Each service has its own `.env` file. Copy from `.env.example` in each service directory and fill in the required values. Variables are validated at startup — missing required vars cause the service to exit with a clear error message.
+Each service has its own `.env` file. Copy from `.env.example` in each service directory and fill in the required values.
+
+**Fail-fast behaviour:** The `agent` service throws immediately at startup if `OPENAI_API_KEY` is missing (`throw new Error('Missing required environment variable: OPENAI_API_KEY')`), preventing a silent misconfiguration. The `mcp-server` service similarly fails at the first OWM API call if `OWM_API_KEY` is absent. Missing optional variables fall back to the defaults shown below.
 
 ## mcp-server
 
@@ -23,7 +25,7 @@ File: `agent/.env` (copy from `agent/.env.example`)
 | `OPENAI_MODEL` | No | `gpt-4o-mini` | OpenAI model to use. Swap to `gpt-4o` for higher reasoning quality at increased cost. |
 | `MCP_SERVER_URL` | No | `http://localhost:3001` | Base URL of the MCP server. Set to `http://mcp-server:3001` automatically by docker-compose. |
 | `PORT` | No | `3000` | Port the agent listens on. |
-| `CORS_ORIGIN` | No | `http://localhost:5000` | Allowed CORS origin for browser requests. Set to your frontend's domain in production. |
+| `CORS_ORIGIN` | No | `http://localhost:5000` | Comma-separated list of allowed CORS origins for browser requests. Set to your frontend's domain in production. |
 
 ## docker-compose overrides
 

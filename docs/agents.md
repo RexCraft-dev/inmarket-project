@@ -17,6 +17,8 @@ Specialist subagents are defined in `.claude/agents/`. They are invoked via the 
 
 ## dev
 
+**Model:** claude-sonnet | **Color:** cyan
+
 **Purpose:** Write new feature code, add Express routes, build LangChain tools, update `package.json` dependencies, implement any application logic across mcp-server, agent, or frontend.
 
 **Tools:** Read, Write, Edit, Bash, LSP
@@ -30,6 +32,8 @@ Specialist subagents are defined in `.claude/agents/`. They are invoked via the 
 ---
 
 ## qa
+
+**Model:** claude-sonnet | **Color:** green
 
 **Purpose:** Write tests, validate API contracts between services, check error handling paths, verify environment variable requirements are documented.
 
@@ -45,6 +49,8 @@ Specialist subagents are defined in `.claude/agents/`. They are invoked via the 
 
 ## security
 
+**Model:** claude-opus | **Color:** red
+
 **Purpose:** Review environment variable handling, check for secrets in code, validate input sanitisation and rate limiting, CORS and authentication review.
 
 **Tools:** Read, Bash, LSP
@@ -58,6 +64,8 @@ Specialist subagents are defined in `.claude/agents/`. They are invoked via the 
 ---
 
 ## prod
+
+**Model:** claude-sonnet | **Color:** magenta
 
 **Purpose:** Dockerfile optimisation, docker-compose service dependency checks, environment variable completeness across all services, README deployment section updates.
 
@@ -73,6 +81,8 @@ Specialist subagents are defined in `.claude/agents/`. They are invoked via the 
 
 ## docs
 
+**Model:** claude-sonnet | **Color:** yellow
+
 **Purpose:** Incrementally update project documentation to reflect what just changed. Never rewrites docs from scratch — only touches the sections relevant to the changed file.
 
 **Tools:** Read, Write, Edit, Glob, LSP
@@ -84,3 +94,24 @@ Specialist subagents are defined in `.claude/agents/`. They are invoked via the 
 - `docs/api.md` — when route files change
 - `docs/env.md` — when `.env.example` files change
 - `docs/agents.md` — when `.claude/agents/*.md` files change
+
+---
+
+## PostToolUse hook
+
+**File:** `.claude/hooks/update-docs.mjs`
+
+**Configured in:** `.claude/settings.json` — hooks on `PostToolUse` for tool matcher `Write|Edit|MultiEdit`
+
+**How it fires:** After every Write, Edit, or MultiEdit tool call, Claude reads the hook payload from stdin (JSON with `tool_input.file_path`), then spawns a detached `claude -p` process invoking the `docs` subagent with the changed file path. The child is detached and unreffed so it never blocks the main Claude session.
+
+**What it skips (SKIP_PATTERNS):**
+- `node_modules/` — dependency trees
+- `.env` files — secrets, never documented directly
+- `package-lock.json` — lockfiles
+- `docs/` — doc file edits themselves (prevents infinite loops)
+- `.claude/hooks/` — hook script edits
+
+**Watched extensions:** `.js`, `.json`, `.md`, `.yml`, `.yaml` — all other file types are silently ignored.
+
+**Failure mode:** Any error (missing binary, parse failure, spawn error) is caught and swallowed. Doc updates are best-effort and never block development work.

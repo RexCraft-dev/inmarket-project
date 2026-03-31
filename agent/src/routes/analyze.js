@@ -20,6 +20,15 @@ async function mcpGet(path, params = {}) {
   return JSON.stringify(data);
 }
 
+async function mcpGetJson(path, params = {}) {
+  const url = new URL(path, MCP_URL);
+  for (const [k, v] of Object.entries(params)) {
+    if (v !== undefined && v !== null) url.searchParams.set(k, String(v));
+  }
+  const res = await fetch(url.toString());
+  return res.json();
+}
+
 // ─── LangChain tools ──────────────────────────────────────────────────────────
 
 const tools = [
@@ -142,9 +151,21 @@ router.post('/analyze', async (req, res, next) => {
     if (cities?.length) parts.push(`Target cities: ${cities.join(', ')}`);
     const input = parts.join('. ');
 
-    const result = await executor.invoke({ input });
+    const [result, scoreResult] = await Promise.all([
+      executor.invoke({ input }),
+      (city && category)
+        ? mcpGetJson('/moments/score', { city, category }).catch(() => null)
+        : Promise.resolve(null),
+    ]);
 
-    res.json({ ok: true, data: { answer: result.output, question } });
+    res.json({
+      ok: true,
+      data: {
+        answer: result.output,
+        question,
+        ...(scoreResult?.ok && { scoreData: scoreResult.data }),
+      },
+    });
   } catch (err) {
     next(err);
   }

@@ -1093,34 +1093,31 @@
     setLoading(true);
 
     try {
-      // Fire all three requests in parallel
-      const [agentRes, scoreRes, forecastRes] = await Promise.all([
+      const [agentRes, forecastRes] = await Promise.all([
         fetch(`${AGENT_URL}/analyze`, {
           method:  'POST',
           headers: { 'Content-Type': 'application/json' },
           body:    JSON.stringify({ question, city, category }),
         }),
-        fetch(`${MCP_URL}/moments/score?city=${encodeURIComponent(city)}&category=${encodeURIComponent(category)}`),
         fetch(`${MCP_URL}/moments/forecast-7day?city=${encodeURIComponent(city)}&category=${encodeURIComponent(category)}`),
       ]);
 
-      if (!agentRes.ok || !scoreRes.ok) {
-        const errBody = await (agentRes.ok ? scoreRes : agentRes).json().catch(() => ({}));
-        throw new Error(errBody.error ?? `HTTP ${agentRes.ok ? scoreRes.status : agentRes.status}`);
+      if (!agentRes.ok) {
+        const errBody = await agentRes.json().catch(() => ({}));
+        throw new Error(errBody.error ?? `HTTP ${agentRes.status}`);
       }
 
-      const [agentJson, scoreJson, forecastJson] = await Promise.all([
+      const [agentJson, forecastJson] = await Promise.all([
         agentRes.json(),
-        scoreRes.json(),
         forecastRes.json().catch(() => null),  // forecast failure is non-fatal
       ]);
 
       if (!agentJson.ok) throw new Error(agentJson.error ?? 'Agent error');
-      if (!scoreJson.ok) throw new Error(scoreJson.error ?? 'Score error');
+      if (!agentJson.data.scoreData) throw new Error('Score data unavailable from agent');
 
-      const { answer }                                          = agentJson.data;
-      const { score, breakdown, signals, all_signals, conditions } = scoreJson.data;
-      const resolvedCity                                        = scoreJson.data.city ?? city;
+      const { answer, scoreData }                                  = agentJson.data;
+      const { score, breakdown, signals, all_signals, conditions } = scoreData;
+      const resolvedCity                                           = scoreData.city ?? city;
 
       // Render score panel
       scoreCity.textContent     = resolvedCity.toUpperCase();

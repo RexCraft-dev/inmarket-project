@@ -66,7 +66,7 @@ router.get('/score', async (req, res, next) => {
   try {
     const { city, category } = scoreSchema.parse(req.query);
     const conditions = await fetchCurrentConditions(city);
-    const { total, breakdown, signals } = scoreMoment(conditions, category);
+    const { total, breakdown, signals, all_signals } = scoreMoment(conditions, category);
     res.json({
       ok: true,
       data: {
@@ -75,6 +75,7 @@ router.get('/score', async (req, res, next) => {
         score: total,
         breakdown,
         signals,
+        all_signals,
         conditions: {
           temp_f: conditions.temp_f,
           weather_id: conditions.weather_id,

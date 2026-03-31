@@ -1,0 +1,72 @@
+# docker-compose.yml — Moments Intelligence production stack
+#
+# Prerequisites before running `docker compose up --build`:
+#   1. Copy mcp-server/.env.example  →  mcp-server/.env  and fill in OWM_API_KEY
+#   2. Copy agent/.env.example       →  agent/.env        and fill in OPENAI_API_KEY
+#
+# NOTE: The frontend/index.html currently has hardcoded URLs:
+#   const AGENT_URL = 'http://localhost:3000';
+#   const MCP_URL   = 'http://localhost:3001';
+# These work when hitting the services directly from a host browser via the
+# published ports (3000 and 3001). The nginx proxy routes /api/agent/ and
+# /api/mcp/ are wired up for when the frontend is updated to use relative URLs.
+# Until that frontend change is made, browsers will reach the APIs on localhost
+# rather than through the nginx proxy.
+
+services:
+
+  # ── MCP Server (OpenWeatherMap wrapper) ───────────────────────────────────
+  mcp-server:
+    build: ./mcp-server
+    ports:
+      - "3001:3001"
+    # mcp-server/.env must exist — copy from mcp-server/.env.example
+    env_file:
+      - ./mcp-server/.env
+    environment:
+      NODE_ENV: production
+      # Allow the browser (served from nginx on 8080) and the agent to reach this service
+      CORS_ORIGIN: "http://localhost:8080,http://localhost:3000"
+    healthcheck:
+      test: ["CMD", "wget", "-qO-", "http://localhost:3001/health"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 10s
+    restart: unless-stopped
+
+  # ── Agent (LangChain / OpenAI backend) ────────────────────────────────────
+  agent:
+    build: ./agent
+    ports:
+      - "3000:3000"
+    # agent/.env must exist — copy from agent/.env.example
+    env_file:
+      - ./agent/.env
+    environment:
+      NODE_ENV: production
+      # Use the Docker service name so container-to-container calls do not leave the network
+      MCP_SERVER_URL: "http://mcp-server:3001"
+      CORS_ORIGIN: "http://localhost:8080"
+    depends_on:
+      mcp-server:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "wget", "-qO-", "http://localhost:3000/health"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 10s
+    restart: unless-stopped
+
+  # ── Frontend (nginx serving static HTML + reverse proxy) ──────────────────
+  frontend:
+    build: ./frontend
+    ports:
+      - "8080:8080"
+    depends_on:
+      agent:
+        condition: service_healthy
+      mcp-server:
+        condition: service_healthy
+    restart: unless-stopped

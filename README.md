@@ -43,46 +43,78 @@ Weights for all 9 brand categories are configurable in `mcp-server/src/config/ca
 
 - Node.js 20+
 - Docker + Docker Compose (for containerised setup)
-- [OpenWeatherMap API key](https://openweathermap.org/api) (free tier)
+- OpenWeatherMap API key (free tier — see below)
 - [OpenAI API key](https://platform.openai.com/api-keys)
+
+## Getting an OpenWeatherMap API key
+
+The MCP server uses OpenWeatherMap's free Current Weather and 5-day Forecast APIs. No credit card is required.
+
+1. Go to [openweathermap.org](https://openweathermap.org) and click **Sign In → Create an Account**.
+2. After confirming your email, open the **API keys** tab in your account dashboard.
+3. A default key named `Default` is generated automatically — copy it.
+4. Keys activate within **10–60 minutes** of account creation. If you get `401` responses, wait a few minutes and retry.
+5. Paste the key into `mcp-server/.env` as `OWM_API_KEY=<your-key>`.
+
+The free tier allows 60 calls/minute and 1,000,000 calls/month — more than enough for this project.
 
 ## Quick start
 
 ### With Docker (recommended)
 
 ```bash
-# 1. Create env files
-cp mcp-server/.env.example mcp-server/.env   # set OWM_API_KEY
-cp agent/.env.example      agent/.env         # set OPENAI_API_KEY
+# 1. Copy and populate env files
+cp mcp-server/.env.example mcp-server/.env
+cp agent/.env.example      agent/.env
+```
 
-# 2. Build and run
+Open `mcp-server/.env` and set `OWM_API_KEY=<your-openweathermap-key>`.  
+Open `agent/.env` and set `OPENAI_API_KEY=<your-openai-key>`.
+
+```bash
+# 2. Build and start all services
 docker compose up --build
 ```
 
-Open http://localhost:8080
+Open **http://localhost:8080** in your browser.
 
-Services start in dependency order — `mcp-server` first, `agent` once MCP is healthy, `frontend` once both are healthy.
+Services start in dependency order: `mcp-server` first, `agent` once the MCP server is healthy, then `frontend`.
 
 ### Without Docker
 
+**Step 1 — set up env files**
+
 ```bash
-cp mcp-server/.env.example mcp-server/.env   # set OWM_API_KEY
-cp agent/.env.example      agent/.env         # set OPENAI_API_KEY
+cp mcp-server/.env.example mcp-server/.env   # add OWM_API_KEY
+cp agent/.env.example      agent/.env         # add OPENAI_API_KEY
+```
 
-# Terminal 1
+**Step 2 — start the MCP server** (scoring engine + weather data)
+
+```bash
 cd mcp-server && npm install && npm run dev
+# Listening on http://localhost:3001
+```
 
-# Terminal 2
+**Step 3 — start the agent backend** (in a new terminal)
+
+```bash
 cd agent && npm install && npm run dev
+# Listening on http://localhost:3000
+```
 
-# Terminal 3 — open on a port that nginx would serve from
+**Step 4 — open the web app** (in a new terminal)
+
+```bash
 cd frontend && npx serve . -p 8080
 ```
 
+Then open **http://localhost:8080** in your browser.
+
 > **Note:** Running without Docker means the nginx proxy is absent. The frontend uses
 > relative URLs (`/api/agent/`, `/api/mcp/`) that require the proxy to resolve.
-> For local dev without Docker, change `AGENT_URL` and `MCP_URL` in `frontend/index.html`
-> back to `http://localhost:3000` and `http://localhost:3001`.
+> For local dev without Docker, edit `AGENT_URL` and `MCP_URL` in `frontend/index.html`
+> to point directly to `http://localhost:3000` and `http://localhost:3001`.
 
 ### Health checks
 
@@ -118,4 +150,4 @@ Each service has its own `.env` file. See `.env.example` in each service directo
 
 ## Further reading
 
-See [`HANDOFF.md`](./HANDOFF.md) for a full breakdown of the scoring algorithm, how to add a new brand category, known limitations, and the subagent roster used during development.
+See [`docs/HANDOFF.md`](./docs/HANDOFF.md) for a full breakdown of the scoring algorithm, how to add a new brand category, known limitations, and the subagent roster used during development.
